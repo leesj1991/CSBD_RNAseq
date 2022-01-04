@@ -1,4 +1,5 @@
-#°á°ú¿¡ Ã¥ÀÓÁöÁö ¾Ê½À´Ï´Ù. Raw data¿Í ÃæºÐÈ÷ ±³Â÷°ËÁõ ÇÏ°í »ç¿ëÇÏ¼¼¿ä.
+# ê²°ê³¼ì— ì±…ìž„ì§€ì§€ ì•ŠìŠµë‹ˆë‹¤. Raw dataì™€ ì¶©ë¶„ížˆ êµì°¨ê²€ì¦ í•˜ê³  ì‚¬ìš©í•˜ì„¸ìš”.
+# RNAseq_visualization_20220104v2.R
 
 rm(list = ls(all = TRUE))
 setwd(choose.dir(default = "", caption = "Select folder"))
@@ -55,16 +56,16 @@ for (file_name in file_list){
     
     temp_file_name = strsplit(file_name,".",1)[[1]][1]
     
-    #-># File name parcing #########################################################
+    #-># File name parcing #####################################################
     temp_file_name_parse = strsplit(temp_file_name,"_")[[1]]
     
     temp_data = bind_cols(temp_data, AGE = temp_file_name_parse[3])
     temp_data = bind_cols(temp_data, SEX = temp_file_name_parse[1])
-    temp_data = bind_cols(temp_data, GENOTYPE = temp_file_name_parse[2])
-    temp_data = bind_cols(temp_data, DIRECTION = temp_file_name_parse[4])
+    temp_data = bind_cols(temp_data, GENOTYPE = temp_file_name_parse[4])
+    temp_data = bind_cols(temp_data, DIRECTION = temp_file_name_parse[5])
     temp_data = bind_cols(temp_data, GENESET = sheet_name)
-    temp_data = bind_cols(temp_data, GROUP = paste(temp_file_name_parse[2], temp_file_name_parse[3]))
-    #<-#############################################################################
+    temp_data = bind_cols(temp_data, GROUP = paste(temp_file_name_parse[3], temp_file_name_parse[4]))
+    #<-#########################################################################
     
     data = bind_rows(data, temp_data)
   }
@@ -78,8 +79,9 @@ save(data, file = "totaldata_onlySignificant.rdata")
 
 rm(list = ls(all = TRUE))
 
-#-># Maximum Y axis number #####################################################
+#-># Maximum Y axis number & Plot rotation #####################################
 maximum_geneset = 30
+reverse_plot = 1 # 0 (genesets in Y axis), or 1 (genesets in X axis)
 #<-#############################################################################
 
 defaultW <- getOption("warn") 
@@ -87,7 +89,11 @@ options(warn = -1)
 
 #Draw total data
 load("totaldata_total.rdata")
-pdf("GSEA_plot_total.pdf", paper="a4")
+
+if(reverse_plot == 0){
+  pdf("GSEA_plot_total.pdf", paper="a4")
+} else pdf("GSEA_plot_total.pdf", paper="a4r")
+
 {
   #variables
   group_list = unique(data$group)
@@ -114,7 +120,7 @@ pdf("GSEA_plot_total.pdf", paper="a4")
         tempdata$name = chartr("_", " ", tempdata$name)
         tempdata$name = str_wrap(tempdata$name, width = 30)
         tempdata = tempdata %>% na.omit()
-        order = (tempdata %>% filter(group==arrby) %>% select(name))[1:plot_number,]
+        geneset_order = (tempdata %>% filter(group==arrby) %>% select(name))[1:plot_number,]
         
         s = ggplot(tempdata, aes(x = group, 
                                  y = name, 
@@ -128,12 +134,15 @@ pdf("GSEA_plot_total.pdf", paper="a4")
           theme(panel.grid.major = element_line(size = 0.2, linetype = "solid", color = bgColorForExport[change_direction])) +
           theme(axis.title.x = element_blank()) +
           theme(axis.title.y = element_blank()) +
-          scale_y_discrete(limits = rev(order)) +
+          scale_y_discrete(limits = rev(geneset_order)) +
+          scale_x_discrete(limits = group_list) +
           theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
           geom_vline(xintercept = arrby, linetype = 'dashed', color='grey50', size = 0.2) +
           #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
           #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
           scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+        
+        if(reverse_plot == 1) s = s + coord_flip()
         
         print(s)
       }
@@ -147,7 +156,11 @@ rm(data)
 
 #Draw only significant data
 load("totaldata_onlySignificant.rdata")
-pdf("GSEA_plot_onlySignificant.pdf", paper="a4")
+
+if(reverse_plot == 0){
+  pdf("GSEA_plot_onlySignificant.pdf", paper="a4")
+} else pdf("GSEA_plot_onlySignificant.pdf", paper="a4r")
+
 {
   #variables
   group_list = unique(data$group)
@@ -174,7 +187,7 @@ pdf("GSEA_plot_onlySignificant.pdf", paper="a4")
         tempdata$name = chartr("_", " ", tempdata$name)
         tempdata$name = str_wrap(tempdata$name, width = 30)
         tempdata = tempdata %>% na.omit()
-        order = (tempdata %>% filter(group==arrby) %>% select(name))[1:plot_number,]
+        geneset_order = (tempdata %>% filter(group==arrby) %>% select(name))[1:plot_number,]
         
         s = ggplot(tempdata, aes(x = group, 
                                  y = name, 
@@ -188,12 +201,15 @@ pdf("GSEA_plot_onlySignificant.pdf", paper="a4")
           theme(panel.grid.major = element_line(size = 0.2, linetype = "solid", color = bgColorForExport[change_direction])) +
           theme(axis.title.x = element_blank()) +
           theme(axis.title.y = element_blank()) +
-          scale_y_discrete(limits = rev(order)) +
+          scale_y_discrete(limits = rev(geneset_order)) +
+          scale_x_discrete(limits = group_list) +
           theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
           geom_vline(xintercept = arrby, linetype = 'dashed', color='grey50', size = 0.2) +
           #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
           #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
           scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+        
+        if(reverse_plot == 1) s = s + coord_flip()
         
         print(s)
       }
@@ -207,15 +223,19 @@ rm(data)
 
 #Draw most frequently used total data
 load("totaldata_total.rdata")
-pdf("GSEA_plot_most_frequently_used_total.pdf", paper="a4")
+
+if(reverse_plot == 0){
+  pdf("GSEA_plot_most_frequently_used_total.pdf", paper="a4")
+} else pdf("GSEA_plot_most_frequently_used_total.pdf", paper="a4r")
+
 {
   #variables
   group_list = unique(data$group)
   #geneset_list = unique(data$geneset)
   geneset_list = c("ASD_RISK", "Celltype", "Sub_celltype")
-  order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
-               c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
-               c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
+  geneset_order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
+                       c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
+                       c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
   
   bgColorForExport = c("pink", "lightblue")
   
@@ -237,11 +257,14 @@ pdf("GSEA_plot_most_frequently_used_total.pdf", paper="a4")
       theme(panel.grid.major = element_line(size = 0.2, linetype = "solid")) +
       theme(axis.title.x = element_blank()) +
       theme(axis.title.y = element_blank()) +
-      scale_y_discrete(limits = order[[which(geneset_list == choose_geneset)]]) +
+      scale_y_discrete(limits = geneset_order[[which(geneset_list == choose_geneset)]]) +
+      scale_x_discrete(limits = group_list) +
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
       #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
       #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
       scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+    
+    if(reverse_plot == 1) s = s + coord_flip()
     
     print(s)
   }
@@ -253,15 +276,19 @@ rm(data)
 
 #Draw most frequently used significant data
 load("totaldata_onlySignificant.rdata")
-pdf("GSEA_plot_most_frequently_used_significant.pdf", paper="a4")
+
+if(reverse_plot == 0){
+  pdf("GSEA_plot_most_frequently_used_significant.pdf", paper="a4")
+} else pdf("GSEA_plot_most_frequently_used_significant.pdf", paper="a4r")
+
 {
   #variables
   group_list = unique(data$group)
   #geneset_list = unique(data$geneset)
   geneset_list = c("ASD_RISK", "Celltype", "Sub_celltype")
-  order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
-               c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
-               c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
+  geneset_order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
+                       c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
+                       c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
   
   bgColorForExport = c("pink", "lightblue")
   
@@ -283,11 +310,14 @@ pdf("GSEA_plot_most_frequently_used_significant.pdf", paper="a4")
       theme(panel.grid.major = element_line(size = 0.2, linetype = "solid")) +
       theme(axis.title.x = element_blank()) +
       theme(axis.title.y = element_blank()) +
-      scale_y_discrete(limits = order[[which(geneset_list == choose_geneset)]]) +
+      scale_y_discrete(limits = geneset_order[[which(geneset_list == choose_geneset)]]) +
+      scale_x_discrete(limits = group_list) +
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
       #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
       #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
       scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+    
+    if(reverse_plot == 1) s = s + coord_flip()
     
     print(s)
   }
