@@ -1,19 +1,19 @@
-# RNAseq_visualization_20220107v1.R
+# RNAseq_visualization_20220107v2.R
 # 결과에 책임지지 않습니다. Raw data와 충분히 교차검증 하고 사용하세요.
 
 # don't touch
 rm(list = ls(all = TRUE))
 
-# Edit parameters ##############################################################
+# EDIT PARAMETERS ##############################################################
 
-## File name parsing plan
+# file name parsing plan
 # file name -> "1_2_3_4_5.xlsx"
 AGE_ref = 2
 SEX_ref = 3
 GENOTYPE_ref = 4
 DIRECTION_ref = 5
 
-# Grouping for dot plot
+# grouping for dot plot
 GROUP_ref = c(2, 3, 4)
 
 # geneset number for dot plot
@@ -22,6 +22,14 @@ maximum_geneset = 30
 # plot direction
 # 0 (genesets in Y axis), or 1 (genesets in X axis)
 reverse_plot = 0
+
+# information of most frequently used (interested) geneset
+most_frequently_used_geneset_list = c("ASD_RISK", "Celltype", "Sub_celltype")
+most_frequently_used_geneset_order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
+                     c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
+                     c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
+
+
 
 ################################################################################
 
@@ -273,11 +281,8 @@ if(reverse_plot == 0){
 {
   #variables
   group_list = unique(data$group)
-  #geneset_list = unique(data$geneset)
-  geneset_list = c("ASD_RISK", "Celltype", "Sub_celltype")
-  geneset_order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
-                       c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
-                       c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
+  geneset_list = most_frequently_used_geneset_list
+  geneset_order = most_frequently_used_geneset_order
   
   bgColorForExport = c("pink", "lightblue")
   
@@ -330,11 +335,8 @@ if(reverse_plot == 0){
 {
   #variables
   group_list = unique(data$group)
-  #geneset_list = unique(data$geneset)
-  geneset_list = c("ASD_RISK", "Celltype", "Sub_celltype")
-  geneset_order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
-                       c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
-                       c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
+  geneset_list = most_frequently_used_geneset_list
+  geneset_order = most_frequently_used_geneset_order
   
   bgColorForExport = c("pink", "lightblue")
   
