@@ -1,8 +1,37 @@
+# RNAseq_visualization_20220107v1.R
 # 결과에 책임지지 않습니다. Raw data와 충분히 교차검증 하고 사용하세요.
-# RNAseq_visualization_20220104v2.R
 
+# don't touch
 rm(list = ls(all = TRUE))
+
+# Edit parameters ##############################################################
+
+## File name parsing plan
+# file name -> "1_2_3_4_5.xlsx"
+AGE_ref = 2
+SEX_ref = 3
+GENOTYPE_ref = 4
+DIRECTION_ref = 5
+
+# Grouping for dot plot
+GROUP_ref = c(2, 3, 4)
+
+# geneset number for dot plot
+maximum_geneset = 30
+
+# plot direction
+# 0 (genesets in Y axis), or 1 (genesets in X axis)
+reverse_plot = 0
+
+################################################################################
+
+
+
+analysis_time = format(Sys.time(), "%Y%m%d%H%M")
+
 setwd(choose.dir(default = "", caption = "Select folder"))
+
+save.image(file = "parameters.rdata")
 
 #Packages
 {
@@ -42,8 +71,9 @@ setwd(choose.dir(default = "", caption = "Select folder"))
 tic()
 
 data = data.frame()
+parsing_progress = 0;
 
-file_list = list.files(pattern = "xlsx")
+file_list = list.files(pattern = "^[^~]*.xlsx")
 
 for (file_name in file_list){
   
@@ -51,48 +81,123 @@ for (file_name in file_list){
   
   for (sheet_name in sheet_list){
     
+    parsing_progress = parsing_progress + 1
+    
     temp_data = read_excel(file_name, sheet = sheet_name)
     if (nrow(temp_data) == 0) next
     
     temp_file_name = strsplit(file_name,".",1)[[1]][1]
     
-    #-># File name parcing #####################################################
     temp_file_name_parse = strsplit(temp_file_name,"_")[[1]]
     
-    temp_data = bind_cols(temp_data, AGE = temp_file_name_parse[3])
-    temp_data = bind_cols(temp_data, SEX = temp_file_name_parse[1])
-    temp_data = bind_cols(temp_data, GENOTYPE = temp_file_name_parse[4])
-    temp_data = bind_cols(temp_data, DIRECTION = temp_file_name_parse[5])
+    temp_data = bind_cols(temp_data, AGE = temp_file_name_parse[AGE_ref])
+    temp_data = bind_cols(temp_data, SEX = temp_file_name_parse[SEX_ref])
+    temp_data = bind_cols(temp_data, GENOTYPE = temp_file_name_parse[GENOTYPE_ref])
+    temp_data = bind_cols(temp_data, DIRECTION = temp_file_name_parse[DIRECTION_ref])
     temp_data = bind_cols(temp_data, GENESET = sheet_name)
-    temp_data = bind_cols(temp_data, GROUP = paste(temp_file_name_parse[3], temp_file_name_parse[4]))
-    #<-#########################################################################
-    
+    temp_group = ""
+    for (i in 1:length(GROUP_ref)){
+      temp_group = paste(temp_group, temp_file_name_parse[GROUP_ref[i]])
+    }
+    temp_group = str_trim(temp_group, side = "left")
+    temp_data = bind_cols(temp_data, GROUP = temp_group)
+
     data = bind_rows(data, temp_data)
+    
+    message("Data merging | ", parsing_progress, " / ", length(file_list)*length(sheet_list))
   }
 }
 
-data = data %>% clean_names()
-save(data, file = "totaldata_total.rdata")
-
-data = data %>% filter(fdr_q_val < 0.05)
-save(data, file = "totaldata_onlySignificant.rdata")
+data_total = data %>% clean_names()
+data_onlySignificant = data_total %>% filter(fdr_q_val < 0.05)
+save(data_total, data_onlySignificant, file = "data.rdata")
 
 rm(list = ls(all = TRUE))
 
-#-># Maximum Y axis number & Plot rotation #####################################
-maximum_geneset = 30
-reverse_plot = 1 # 0 (genesets in Y axis), or 1 (genesets in X axis)
-#<-#############################################################################
-
-defaultW <- getOption("warn") 
+defaultW = getOption("warn") 
 options(warn = -1) 
 
-#Draw total data
-load("totaldata_total.rdata")
+# Draw total data ##############################################################
+while(length(dev.list())>0) dev.off()
+load("data.rdata")
+data = data_total
+load("parameters.rdata")
 
 if(reverse_plot == 0){
-  pdf("GSEA_plot_total.pdf", paper="a4")
-} else pdf("GSEA_plot_total.pdf", paper="a4r")
+  pdf(paste0("GSEA_plot_total_", analysis_time, ".pdf"), paper="a4")
+} else pdf(paste0("GSEA_plot_total_", analysis_time, ".pdf"), paper="a4r")
+
+{
+  #variables
+  group_list = unique(data$group)
+  geneset_list = unique(data$geneset)
+  direction_list = rev(unique(data$direction))
+  bgColorForExport = c("pink", "lightblue")
+  plot_order = 0;
+  
+  for(choose_geneset in geneset_list){
+    for(change_direction in direction_list){
+      for(arrby in group_list){
+        plot_order = plot_order+1
+        arrby_data = data %>% filter(group == arrby & geneset == choose_geneset)
+        if(nrow(arrby_data) == 0) next
+        tempdata = data[which(data$name %in% arrby_data$name),] %>% filter(geneset == choose_geneset)
+        
+        plot_number = min(maximum_geneset, nrow(arrby_data))
+        
+        if(change_direction == direction_list[1]){
+          tempdata = tempdata %>% arrange(desc(nes))
+        }else if(change_direction == direction_list[2]){
+          tempdata = tempdata %>% arrange(nes)
+        }
+        
+        tempdata$name = chartr("_", " ", tempdata$name)
+        tempdata$name = str_wrap(tempdata$name, width = 30)
+        tempdata = tempdata %>% na.omit()
+        geneset_order = (tempdata %>% filter(group==arrby) %>% select(name))[1:plot_number,]
+        
+        s = ggplot(tempdata, aes(x = group, 
+                                 y = name, 
+                                 size = -log2(fdr_q_val+1e-10), 
+                                 color = nes)) + 
+          geom_point(alpha = 1) + 
+          theme_light() + 
+          ggtitle(str_c("Geneset: ", choose_geneset, 
+                        "\nChange direction: ", change_direction, 
+                        "\nArranged by: ", arrby)) + 
+          theme(panel.grid.major = element_line(size = 0.2, linetype = "solid", color = bgColorForExport[change_direction])) +
+          theme(axis.title.x = element_blank()) +
+          theme(axis.title.y = element_blank()) +
+          scale_y_discrete(limits = rev(geneset_order)) +
+          scale_x_discrete(limits = group_list) +
+          theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+          geom_vline(xintercept = arrby, linetype = 'dashed', color='grey50', size = 0.2) +
+          #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
+          #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
+          scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+        
+        if(reverse_plot == 1) s = s + coord_flip()
+        
+        print(s)
+        message("Drawing | ", "Geneset: ", choose_geneset, " / Change direction: ", change_direction, " / Arranged by: ", arrby)
+      }
+    }
+  }
+  
+  dev.off()
+}
+
+rm(data)
+
+# Draw only significant data ###################################################
+while(length(dev.list())>0) dev.off()
+load("data.rdata")
+data = data_onlySignificant
+load("parameters.rdata")
+
+if(reverse_plot == 0){
+  pdf(paste0("GSEA_plot_onlySignificant_", analysis_time, ".pdf"), paper="a4")
+} else pdf(paste0("GSEA_plot_onlySignificant_", analysis_time, ".pdf"), paper="a4r")
 
 {
   #variables
@@ -145,6 +250,7 @@ if(reverse_plot == 0){
         if(reverse_plot == 1) s = s + coord_flip()
         
         print(s)
+        message("Drawing | ", "Geneset: ", choose_geneset, " / Change direction: ", change_direction, " / Arranged by: ", arrby)
       }
     }
   }
@@ -154,79 +260,15 @@ if(reverse_plot == 0){
 
 rm(data)
 
-#Draw only significant data
-load("totaldata_onlySignificant.rdata")
+# Draw most frequently used total data #########################################
+while(length(dev.list())>0) dev.off()
+load("data.rdata")
+data = data_total
+load("parameters.rdata")
 
 if(reverse_plot == 0){
-  pdf("GSEA_plot_onlySignificant.pdf", paper="a4")
-} else pdf("GSEA_plot_onlySignificant.pdf", paper="a4r")
-
-{
-  #variables
-  group_list = unique(data$group)
-  geneset_list = unique(data$geneset)
-  direction_list = rev(unique(data$direction))
-  bgColorForExport = c("pink", "lightblue")
-  
-  for(choose_geneset in geneset_list){
-    for(change_direction in direction_list){
-      for(arrby in group_list){
-        
-        arrby_data = data %>% filter(group == arrby & geneset == choose_geneset)
-        if(nrow(arrby_data) == 0) next
-        tempdata = data[which(data$name %in% arrby_data$name),] %>% filter(geneset == choose_geneset)
-        
-        plot_number = min(maximum_geneset, nrow(arrby_data))
-        
-        if(change_direction == direction_list[1]){
-          tempdata = tempdata %>% arrange(desc(nes))
-        }else if(change_direction == direction_list[2]){
-          tempdata = tempdata %>% arrange(nes)
-        }
-        
-        tempdata$name = chartr("_", " ", tempdata$name)
-        tempdata$name = str_wrap(tempdata$name, width = 30)
-        tempdata = tempdata %>% na.omit()
-        geneset_order = (tempdata %>% filter(group==arrby) %>% select(name))[1:plot_number,]
-        
-        s = ggplot(tempdata, aes(x = group, 
-                                 y = name, 
-                                 size = -log2(fdr_q_val+1e-10), 
-                                 color = nes)) + 
-          geom_point(alpha = 1) + 
-          theme_light() + 
-          ggtitle(str_c("Geneset: ", choose_geneset, 
-                        "\nChange direction: ", change_direction, 
-                        "\nArranged by: ", arrby)) + 
-          theme(panel.grid.major = element_line(size = 0.2, linetype = "solid", color = bgColorForExport[change_direction])) +
-          theme(axis.title.x = element_blank()) +
-          theme(axis.title.y = element_blank()) +
-          scale_y_discrete(limits = rev(geneset_order)) +
-          scale_x_discrete(limits = group_list) +
-          theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-          geom_vline(xintercept = arrby, linetype = 'dashed', color='grey50', size = 0.2) +
-          #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
-          #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
-          scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
-        
-        if(reverse_plot == 1) s = s + coord_flip()
-        
-        print(s)
-      }
-    }
-  }
-  
-  dev.off()
-}
-
-rm(data)
-
-#Draw most frequently used total data
-load("totaldata_total.rdata")
-
-if(reverse_plot == 0){
-  pdf("GSEA_plot_most_frequently_used_total.pdf", paper="a4")
-} else pdf("GSEA_plot_most_frequently_used_total.pdf", paper="a4r")
+  pdf(paste("GSEA_plot_most_frequently_used_total_", analysis_time, ".pdf"), paper="a4")
+} else pdf(paste("GSEA_plot_most_frequently_used_total_", analysis_time, ".pdf"), paper="a4r")
 
 {
   #variables
@@ -267,6 +309,7 @@ if(reverse_plot == 0){
     if(reverse_plot == 1) s = s + coord_flip()
     
     print(s)
+    message("Drawing | ", "Geneset: ", choose_geneset)
   }
   
   dev.off()
@@ -274,12 +317,15 @@ if(reverse_plot == 0){
 
 rm(data)
 
-#Draw most frequently used significant data
-load("totaldata_onlySignificant.rdata")
+# Draw most frequently used significant data ###################################
+while(length(dev.list())>0) dev.off()
+load("data.rdata")
+data = data_onlySignificant
+load("parameters.rdata")
 
 if(reverse_plot == 0){
-  pdf("GSEA_plot_most_frequently_used_significant.pdf", paper="a4")
-} else pdf("GSEA_plot_most_frequently_used_significant.pdf", paper="a4r")
+  pdf(paste("GSEA_plot_most_frequently_used_significant_", analysis_time, ".pdf"), paper="a4")
+} else pdf(paste("GSEA_plot_most_frequently_used_significant_", analysis_time, ".pdf"), paper="a4r")
 
 {
   #variables
@@ -320,6 +366,7 @@ if(reverse_plot == 0){
     if(reverse_plot == 1) s = s + coord_flip()
     
     print(s)
+    message("Drawing | ", "Geneset: ", choose_geneset)
   }
   
   dev.off()
@@ -328,3 +375,5 @@ if(reverse_plot == 0){
 options(warn = defaultW)
 
 toc()
+
+message("Finished")
