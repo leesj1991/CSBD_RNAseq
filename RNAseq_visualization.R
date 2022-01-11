@@ -1,4 +1,4 @@
-# RNAseq_visualization_20220107v2.R
+# RNAseq_visualization_20220111v1.R
 # 결과에 책임지지 않습니다. Raw data와 충분히 교차검증 하고 사용하세요.
 
 # don't touch
@@ -23,13 +23,16 @@ maximum_geneset = 30
 # 0 (genesets in Y axis), or 1 (genesets in X axis)
 reverse_plot = 0
 
-# information of most frequently used (interested) geneset
+# informations of most frequently used (interested) genesets
 most_frequently_used_geneset_list = c("ASD_RISK", "Celltype", "Sub_celltype")
 most_frequently_used_geneset_order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
                      c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
                      c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
 
-
+# color
+# recommend 5 or 7 for step (7: darker)
+color_step = 5
+color_pal = "RdBu"
 
 ################################################################################
 
@@ -37,7 +40,7 @@ most_frequently_used_geneset_order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOIN
 
 analysis_time = format(Sys.time(), "%Y%m%d%H%M")
 
-setwd(choose.dir(default = "", caption = "Select folder"))
+#setwd(choose.dir(default = "", caption = "Select folder"))
 
 save.image(file = "parameters.rdata")
 
@@ -73,6 +76,11 @@ save.image(file = "parameters.rdata")
   if(require(tictoc)){
   } else {install.packages("tictoc")
     library(tictoc)
+  }
+  
+  if(require(RColorBrewer)){
+  } else {install.packages("RColorBrewer")
+    library(RColorBrewer)
   }
 }
 
@@ -131,6 +139,9 @@ load("data.rdata")
 data = data_total
 load("parameters.rdata")
 
+pal = brewer.pal(n = color_step, name = color_pal)
+pal = c(pal[1], pal[color_step])
+
 if(reverse_plot == 0){
   pdf(paste0("GSEA_plot_total_", analysis_time, ".pdf"), paper="a4")
 } else pdf(paste0("GSEA_plot_total_", analysis_time, ".pdf"), paper="a4r")
@@ -182,7 +193,8 @@ if(reverse_plot == 0){
           geom_vline(xintercept = arrby, linetype = 'dashed', color='grey50', size = 0.2) +
           #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
           #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
-          scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+          scale_size_continuous(range = c(2,5)) +
+          scale_color_gradient2(midpoint=0, low=pal[2], mid="white", high=pal[1], space ="Lab" )
         
         if(reverse_plot == 1) s = s + coord_flip()
         
@@ -202,6 +214,9 @@ while(length(dev.list())>0) dev.off()
 load("data.rdata")
 data = data_onlySignificant
 load("parameters.rdata")
+
+pal = brewer.pal(n = color_step, name = color_pal)
+pal = c(pal[1], pal[color_step])
 
 if(reverse_plot == 0){
   pdf(paste0("GSEA_plot_onlySignificant_", analysis_time, ".pdf"), paper="a4")
@@ -253,7 +268,8 @@ if(reverse_plot == 0){
           geom_vline(xintercept = arrby, linetype = 'dashed', color='grey50', size = 0.2) +
           #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
           #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
-          scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+          scale_size_continuous(range = c(2,5)) +
+          scale_color_gradient2(midpoint=0, low=pal[2], mid="white", high=pal[1], space ="Lab" )
         
         if(reverse_plot == 1) s = s + coord_flip()
         
@@ -274,9 +290,12 @@ load("data.rdata")
 data = data_total
 load("parameters.rdata")
 
+pal = brewer.pal(n = color_step, name = color_pal)
+pal = c(pal[1], pal[color_step])
+
 if(reverse_plot == 0){
-  pdf(paste("GSEA_plot_most_frequently_used_total_", analysis_time, ".pdf"), paper="a4")
-} else pdf(paste("GSEA_plot_most_frequently_used_total_", analysis_time, ".pdf"), paper="a4r")
+  pdf(paste0("GSEA_plot_most_frequently_used_total_", analysis_time, ".pdf"), paper="a4")
+} else pdf(paste0("GSEA_plot_most_frequently_used_total_", analysis_time, ".pdf"), paper="a4r")
 
 {
   #variables
@@ -309,7 +328,8 @@ if(reverse_plot == 0){
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
       #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
       #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
-      scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+      scale_size_continuous(range = c(2,5)) +
+      scale_color_gradient2(midpoint=0, low=pal[2], mid="white", high=pal[1], space ="Lab" )
     
     if(reverse_plot == 1) s = s + coord_flip()
     
@@ -328,9 +348,12 @@ load("data.rdata")
 data = data_onlySignificant
 load("parameters.rdata")
 
+pal = brewer.pal(n = color_step, name = color_pal)
+pal = c(pal[1], pal[color_step])
+
 if(reverse_plot == 0){
-  pdf(paste("GSEA_plot_most_frequently_used_significant_", analysis_time, ".pdf"), paper="a4")
-} else pdf(paste("GSEA_plot_most_frequently_used_significant_", analysis_time, ".pdf"), paper="a4r")
+  pdf(paste0("GSEA_plot_most_frequently_used_significant_", analysis_time, ".pdf"), paper="a4")
+} else pdf(paste0("GSEA_plot_most_frequently_used_significant_", analysis_time, ".pdf"), paper="a4r")
 
 {
   #variables
@@ -363,7 +386,8 @@ if(reverse_plot == 0){
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
       #annotate("rect", xmin = 0.5, xmax = 1.5, ymin = 1, ymax = 20, alpha = 1, fill = "green") +
       #geom_rect(inherit.aes=FALSE, aes(xmin=0.5, xmax=1.5, ymin=3, ymax=4), color="transparent", fill="orange", alpha=0.3) +
-      scale_color_gradient2(midpoint=0, low="blue", mid="white", high="red", space ="Lab" )
+      scale_size_continuous(range = c(2,5)) +
+      scale_color_gradient2(midpoint=0, low=pal[2], mid="white", high=pal[1], space ="Lab" )
     
     if(reverse_plot == 1) s = s + coord_flip()
     
