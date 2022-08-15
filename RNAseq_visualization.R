@@ -1,4 +1,4 @@
-# RNAseq_visualization_20220815v1.R
+# RNAseq_visualization_20220815v2.R
 # 결과에 책임지지 않습니다. Raw data와 충분히 교차검증 하고 사용하세요.
 
 # don't touch
@@ -310,7 +310,6 @@ if(reverse_plot == 0){
     tempdata = data %>% filter(geneset == choose_geneset)
     
     tempdata$name = chartr("_", " ", tempdata$name)
-    tempdata$name = str_wrap(tempdata$name, width = 30)
     tempdata = tempdata %>% na.omit()
     
     s = ggplot(tempdata, aes(x = group, 
@@ -368,7 +367,6 @@ if(reverse_plot == 0){
     tempdata = data %>% filter(geneset == choose_geneset)
     
     tempdata$name = chartr("_", " ", tempdata$name)
-    tempdata$name = str_wrap(tempdata$name, width = 30)
     tempdata = tempdata %>% na.omit()
     
     s = ggplot(tempdata, aes(x = group, 
