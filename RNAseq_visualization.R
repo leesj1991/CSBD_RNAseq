@@ -21,13 +21,13 @@ maximum_geneset = 30
 
 # plot direction
 # 0 (genesets in Y axis), or 1 (genesets in X axis)
-reverse_plot = 0
+reverse_plot = 1
 
 # informations of most frequently used (interested) genesets
-most_frequently_used_geneset_list = c("ASD_RISK", "Celltype", "Sub_celltype")
+most_frequently_used_geneset_list = c("ASD_RISK", "CELL_TYPE", "SUB_CELLTYPE")
 most_frequently_used_geneset_order = list(c("DEG UP VOINEAGU", "COEX UP M16 VOINEAGU", "DEG DOWN VOINEAGU", "COEX DOWN M12 VOINEAGU", "SFARIGENE", "SFARIGENE(HIGH CONFIDENCE)", "FMRPTARGETS", "DENOVOMISS", "DENOVOVARIANTS", "ASD AUTISMKB"), 
-                     c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
-                     c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
+                                          c("NEURONS CAHOY", "S1 PYRNEURONS ZEISEL", "CA1 PYRNEURONS ZEISEL", "INTERNEURONS ZEISEL", "OLIGODENDROCYTES CAHOY", "OLIGODENDROCYTES ZEISEL", "ASTROCYTES CAHOY", "ASTROCYTES ZEISEL", "MICROGLIA ZEISEL", "MICROGLIA ALBRIGHT", "ENDOTHELIAL ZEISEL"), 
+                                          c("CTX GLU LAYER1", "CTX GLU LAYER2-4", "CTX GLU LAYER4", "CTX GLU LAYER5", "CTX GLU LAYER6", "GABAPAN GAD1-2", "GABAPRO ASCL1", "GABAPRO DLX1-2", "GABAPRO NKX2-1", "GABA PVALB", "GABA CALB1", "GABA CALB2", "GABA CCK", "GABA NOS1", "GABA VIP", "OLIGODENDROCYTES PROGE", "OLIGODENDROCYTES MATURE", "ASTROCYTES", "MICROGLIA"))
 
 # color
 # recommend 5 or 7 for step (7: darker)
@@ -117,7 +117,7 @@ for (file_name in file_list){
     }
     temp_group = str_trim(temp_group, side = "left")
     temp_data = bind_cols(temp_data, GROUP = temp_group)
-
+    
     data = bind_rows(data, temp_data)
     
     message("Data merging | ", parsing_progress, " / ", length(file_list)*length(sheet_list))
