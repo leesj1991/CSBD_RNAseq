@@ -1,4 +1,4 @@
-# RNAseq_figure_20220815v1.R
+# RNAseq_figure_20220816v1.R
 # 결과에 책임지지 않습니다. Raw data와 충분히 교차검증 하고 사용하세요.
 
 # don't touch
@@ -9,8 +9,7 @@ rm(list = ls(all = TRUE))
 # plot direction
 # 0 (genesets in Y axis), or 1 (genesets in X axis)
 reverse_plot = 1
-useSample = 3
-
+useSample = 0
 
 
 # informations of genesets
@@ -207,7 +206,7 @@ load("figure_parameters.rdata")
 pal = brewer.pal(n = color_step, name = color_pal)
 pal = c(pal[1], pal[color_step])
 
-analysis_time = format(Sys.time(), "%Y%m%d%H%M")
+analysis_time = format(Sys.time(), "%Y%m%d%H%M%S")
 
 if(reverse_plot == 0){
   pdf(paste0("GSEA_plot_figure_total_", analysis_time, ".pdf"), paper="a4")
@@ -227,7 +226,7 @@ if(reverse_plot == 0){
     tempdata = bind_rows(tempdata, data %>% filter(geneset == choose_geneset))
   }
   
-#  tempdata$combined_name = chartr("_", " ", tempdata$combined_name)
+  #  tempdata$combined_name = chartr("_", " ", tempdata$combined_name)
   tempdata = tempdata %>% na.omit()
   
   s = ggplot(tempdata, aes(x = group, 
@@ -269,7 +268,7 @@ load("figure_parameters.rdata")
 pal = brewer.pal(n = color_step, name = color_pal)
 pal = c(pal[1], pal[color_step])
 
-analysis_time = format(Sys.time(), "%Y%m%d%H%M")
+analysis_time = format(Sys.time(), "%Y%m%d%H%M%S")
 
 if(reverse_plot == 0){
   pdf(paste0("GSEA_plot_figure_onlySignificant_", analysis_time, ".pdf"), paper="a4")
