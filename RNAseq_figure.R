@@ -1,4 +1,4 @@
-# RNAseq_figure_20220816v1.R
+# RNAseq_figure_20220820v1.R
 # 결과에 책임지지 않습니다. Raw data와 충분히 교차검증 하고 사용하세요.
 # 함께 올라와 있는 list_for_RNAseq_figure.xlsx 를 확인하고 사용하세요.
 
