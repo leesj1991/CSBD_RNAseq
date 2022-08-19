@@ -99,6 +99,7 @@ if(useSample == 0){
 # recommend 5 or 7 for step (7: darker)
 color_step = 5
 color_pal = "RdBu"
+# color_pal = "PRGn"
 
 ################################################################################
 
