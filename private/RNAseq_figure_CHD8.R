@@ -1,4 +1,4 @@
-# RNAseq_figure_CHD8_20220820v1.R
+# RNAseq_figure_CHD8_20220827v1.R
 # based on RNAseq_figure_20220820v1.R
 # 결과에 책임지지 않습니다. Raw data와 충분히 교차검증 하고 사용하세요.
 # 함께 올라와 있는 list_for_RNAseq_figure.xlsx 를 확인하고 사용하세요.
@@ -11,24 +11,28 @@ rm(list = ls(all = TRUE))
 # plot direction
 # 0 (genesets in Y axis), or 1 (genesets in X axis)
 reverse_plot = 1
-useSample = 0
+useSample = 1
 
-group_list = c("Hpc P56 Female KO", 
-                    "Hpc P56 Male KO", 
-                    "Hpc P56 Female HT", 
-                    "Hpc P56 Male HT", 
-                    "Whole P56 Female KO", 
-                    "Whole P56 Male KO", 
-                    "Whole P56 Female HT", 
-                    "Whole P56 Male HT", 
-                    "Whole P25 Female KO", 
-                    "Whole P25 Male KO", 
-                    "Whole P25 Female HT", 
-                    "Whole P25 Male HT", 
-                    "Whole P0 Female KO", 
-                    "Whole P0 Male KO", 
-                    "Whole P0 Female HT", 
-                    "Whole P0 Male HT")
+group_list = c("Ctx P56 Female KO", 
+               "Ctx P56 Male KO", 
+               "Ctx P56 Female HT", 
+               "Ctx P56 Male HT", 
+               "Hpc P56 Female KO", 
+               "Hpc P56 Male KO", 
+               "Hpc P56 Female HT", 
+               "Hpc P56 Male HT", 
+               "Whole P56 Female KO", 
+               "Whole P56 Male KO", 
+               "Whole P56 Female HT", 
+               "Whole P56 Male HT", 
+               "Whole P25 Female KO", 
+               "Whole P25 Male KO", 
+               "Whole P25 Female HT", 
+               "Whole P25 Male HT", 
+               "Whole P0 Female KO", 
+               "Whole P0 Male KO", 
+               "Whole P0 Female HT", 
+               "Whole P0 Male HT")
 
 # informations of genesets
 
@@ -159,8 +163,8 @@ if(useSample == 0){
 # color
 # recommend 5 or 7 for step (7: darker)
 color_step = 5
-#color_pal = "RdBu"
-color_pal = "PRGn"
+color_pal = "RdBu"
+#color_pal = "PRGn"
 
 ################################################################################
 
@@ -272,8 +276,8 @@ pal = c(pal[1], pal[color_step])
 analysis_time = format(Sys.time(), "%Y%m%d%H%M%S")
 
 if(reverse_plot == 0){
-  pdf(paste0("GSEA_plot_figure_total_", analysis_time, ".pdf"), paper="a4")
-} else pdf(paste0("GSEA_plot_figure_total_", analysis_time, ".pdf"), paper="a4r")
+  pdf(paste0("GSEA_plot_figure_",useSample,"_total_", analysis_time, ".pdf"), paper="a4")
+} else pdf(paste0("GSEA_plot_figure_",useSample,"_total_", analysis_time, ".pdf"), paper="a4r")
 
 {
   #variables
@@ -338,8 +342,8 @@ pal = c(pal[1], pal[color_step])
 analysis_time = format(Sys.time(), "%Y%m%d%H%M%S")
 
 if(reverse_plot == 0){
-  pdf(paste0("GSEA_plot_figure_onlySignificant_", analysis_time, ".pdf"), paper="a4")
-} else pdf(paste0("GSEA_plot_figure_onlySignificant_", analysis_time, ".pdf"), paper="a4r")
+  pdf(paste0("GSEA_plot_figure_",useSample,"_onlySignificant_", analysis_time, ".pdf"), paper="a4")
+} else pdf(paste0("GSEA_plot_figure_",useSample,"_onlySignificant_", analysis_time, ".pdf"), paper="a4r")
 
 {
   #variables
